@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Moda&Estilo1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <style>
+    /* ==== RESET GLOBAL ==== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      overflow-x: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #ffffff;
+      color: #000000dd;
+    }
+
+    /* ==== UTILIDAD ==== */
+    .oculto {
+      display: none !important;
+    }
+
+    /* ==== HEADER ==== */
+    header {
+      background: linear-gradient(90deg, #232323, #242424);
+      padding: 2rem 1rem;
+      text-align: center;
+      color: white;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      border-radius: 0 0 20px 20px;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      margin: 0;
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ==== PRODUCTO ==== */
+    .producto {
+      background-color: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      padding: 1.5rem;
+      margin: 1rem;
+      display: inline-block;
+      vertical-align: top;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .producto:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .main-img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-bottom: 1rem;
+    }
+
+    .producto h2 {
+      font-size: 1.3rem;
+      margin: 0.5rem 0;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .producto p {
+      font-size: 1rem;
+      color: #090909;
+      margin: 0.5rem 0;
+    }
+
+    .producto strong {
+      color: #e60023;
+      font-size: 1.15rem;
+    }
+
+    /* ==== SELECT ==== */
+    .opciones {
+      margin: 1rem 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.75rem 1.2rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #2d2d2d;
+      background-color: #f4f4f4;
+      border: 1px solid #bbb;
+      border-radius: 12px;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg fill='%23666' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1.2rem center;
+      background-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #00000088;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ==== BOTONES ==== */
+    button,
+    .btn-ver-carrito {
+      background-color: #353335;
+      color: #fff;
+      border: none;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover,
+    .btn-ver-carrito:hover {
+      background-color: #6ef648;
+      color: #000;
+      transform: translateY(-2px);
+    }
+
+    /* ==== MINI IMÁGENES ==== */
+    .imagenes-mini {
+      display: flex;
+      justify-content: center;
+      margin: 1rem 0;
+      gap: 0.5rem;
+    }
+
+    .imagenes-mini img {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .imagenes-mini img:hover,
+    .imagenes-mini img.active {
+      border-color: #22ff00;
+      transform: scale(1.05);
+    }
+
+    /* ==== CARRITO ==== */
+    .carrito {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      width: 20vw;
+      min-width: 260px;
+      max-width: 350px;
+      background-color: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(248, 2, 2, 0.15);
+      padding: 1.5rem;
+      z-index: 1000;
+    }
+
+    .carrito h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #222;
+    }
+
+    .item-carrito-elegante {
+      background: #f9f9f9;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .item-carrito-elegante:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .carrito-info h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #222;
+    }
+
+    .carrito-info p {
+      margin: 0.2rem 0;
+      font-size: 0.95rem;
+      color: #444;
+    }
+
+    .icono-eliminar {
+      font-size: 1.3rem;
+      color: #e60023;
+      cursor: pointer;
+      padding: 0.3rem;
+      border-radius: 50%;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .icono-eliminar:hover {
+      background: rgba(230, 0, 35, 0.1);
+      transform: scale(1.1);
+    }
+
+    #total-carrito {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 1rem;
+      color: #2b2b2b;
+      border-top: 1px solid #ddd;
+      padding-top: 1rem;
+    }
+
+    .fila-carrito {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1rem;
+      padding: 0 1rem;
+    }
+
+    /* ==== FORMULARIO MODAL FULLSCREEN ==== */
+    #formularioCliente {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(6px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+      z-index: 2000;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    #formularioCliente.oculto {
+      display: none;
+    }
+
+    #formularioCliente form {
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+      animation: slideIn 0.4s ease forwards;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #formularioCliente input,
+    #formularioCliente select,
+    #formularioCliente textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      font-size: 1rem;
+      background-color: #f8f8f8;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #formularioCliente input:focus,
+    #formularioCliente select:focus,
+    #formularioCliente textarea:focus {
+      outline: none;
+      border-color: #888;
+      background-color: #fff;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+    }
+
+    #formularioCliente button {
+      padding: 1rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+      background-color: #353335;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    #formularioCliente button:hover {
+      background-color: #6ef648;
+      color: #000;
+      transform: translateY(-2px);
+    }
+
+    /* ==== WHATSAPP BUTTON ==== */
+    .btn-whatsapp {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 999;
+      background-color: #25D366;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      padding: 0 16px;
+      height: 60px;
+      line-height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s ease;
+    }
+
+    .btn-whatsapp:hover {
+      transform: scale(1.05);
+      background-color: #1ebe5d;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-whatsapp i {
+      font-size: 1.6rem;
+    }
+
+    .texto-wsp {
+      display: none;
+      font-size: 1rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* ==== NOTIFICACIÓN ==== */
+    .notificacion {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #414341;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      font-size: 1rem;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      width: auto;
+      max-width: 90vw;
+    }
+
+    .notificacion.mostrar {
+      opacity: 1;
+    }
+
+    /* ==== RESPONSIVE ==== */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      .producto {
+        width: 100%;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+
+      .opciones {
+        flex-direction: column;
+      }
+
+      .carrito {
+        width: 95vw;
+        right: 2.5vw;
+        top: 80px;
+      }
+
+      #formularioCliente form {
+        height: 100%;
+        border-radius: 0;
+        max-width: none;
+        padding: 2rem 1.5rem;
+        justify-content: center;
+      }
+
+      .btn-ver-carrito,
+      .notificacion {
+        width: 90vw;
+        font-size: 0.95rem;
+      }
+
+      .texto-wsp {
+        display: inline;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <header>
+    <h1>Moda & Estilo</h1>
+  </header>
+
+  <div id="notificacion" class="notificacion oculto">Producto agregado al carrito 🛒</div>
+  <!-- Botón que despliega TODO -->
+  <div class="fila-carrito">
+    <button class="btn-ver-carrito" onclick="toggleCarrito()">Ver Carrito</button>
+  </div>
+
+
+  <!-- Contenedor de todo: carrito, total, botones y formulario -->
+  <div id="bloqueCarrito" class="oculto container">
+
+
+    <div id="carrito"></div>
+
+    <div id="total-carrito"></div>
+
+    <div style="text-align:center; margin-top: 1rem;">
+      <button class="btn btn-success" onclick="mostrarFormulario()">✅ Finalizar compra</button>
+    </div>
+
+    <!-- Formulario dentro del mismo bloque -->
+    <div id="formularioCliente" class="oculto" style="margin-top: 2rem;">
+      <h3>📋 Datos del Cliente</h3>
+      <form onsubmit="event.preventDefault(); confirmarEnvioWhatsApp();">
+        <input class="input" id="nombreCliente" placeholder="👤 Nombre completo" required />
+        <input class="input" id="departamentoCliente" placeholder="🏛️ Departamento" required />
+        <input class="input" id="ciudadCliente" placeholder="🏙️ Ciudad" required />
+        <input class="input" id="direccionCliente" placeholder="🏠 Dirección" required />
+        <input class="input" id="celularCliente" placeholder="📞 Celular" required />
+        <select class="input" id="metodoPagoCliente" required>
+          <option value="">💳 Selecciona método de pago</option>
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia">Transferencia</option>
+          <option value="Contra entrega">Contra entrega</option>
+        </select>
+        <button type="submit" class="btn btn-success">📲 Enviar pedido por WhatsApp</button>
+        <button type="button" class="btn btn-secondary" onclick="ocultarFormulario()">🔙 Volver</button>
+      </form>
+    </div>
+
+  </div>
+
+
+  <div id="contenedor-productos"></div>
+
+
+  <a href="https://wa.me/573185634316" target="_blank" class="btn-whatsapp"
+    aria-label="Chatea con nosotros por WhatsApp">
+    <i class="fab fa-whatsapp"></i><span class="texto-wsp"> </span>
+  </a>
+
+
+  <!-- Panel Admin oculto -->
+  <div id="admin-panel"
+    style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#fff; padding:1.5rem; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); z-index:9999; width:90%; max-width:450px;">
+    <div id="admin-login">
+      <h3>🔐 Acceso Administrador</h3>
+      <input id="admin-usuario" placeholder="👤 Usuario" class="input" />
+      <input id="admin-clave" placeholder="🔒 Clave" type="password" class="input" />
+      <button onclick="loginAdmin()" class="btn btn-success">Entrar</button>
+      <button onclick="cerrarAdminPanel()" class="btn btn-secondary">Cerrar</button>
+    </div>
+
+    <div id="admin-contenido" style="display:none;">
+      <h3>🛠️ Panel de Control</h3>
+
+      <h4>Editar producto existente</h4>
+      <select id="selectorProducto" class="input"></select>
+      <input id="nuevaImagen" class="input" placeholder="📷 URL nueva imagen" />
+      <input id="nuevasTallas" class="input" placeholder="📏 Tallas separadas por coma (35,36...)" />
+      <button onclick="actualizarProducto()" class="btn btn-success">Actualizar</button>
+      <button onclick="eliminarProductoDesdePanel()">🗑️ Eliminar seleccionado</button>
+
+      <hr>
+
+      <h4>➕ Agregar nuevo producto</h4>
+      <input id="nuevoNombre" class="input" placeholder="📝 Nombre del producto" />
+      <input id="nuevoPrecio" class="input" placeholder="💲 Precio actual (ej: 120000)" />
+      <input id="nuevoPrecioOriginal" class="input" placeholder="💲 Precio original (ej: 150000)" />
+      <input id="nuevoImagen" class="input" placeholder="🖼️ URL imagen principal" />
+      <input id="nuevoColor" class="input" placeholder="🎨 Color (ej: negro, blanco...)" />
+      <input id="nuevoTallas" class="input" placeholder="📏 Tallas separadas por coma" />
+      <button onclick="agregarNuevoProducto()" class="btn btn-success">Agregar Producto</button>
+
+      <button onclick="cerrarAdminPanel()" class="btn btn-secondary" style="margin-top:10px;">Cerrar</button>
+    </div>
+  </div>
+
+  <footer style="text-align: center; padding: 1rem; background: #2d3b49; color: white;">
+    <div style="font-size: 1.8rem;">
+      <a href="https://facebook.com/tu-pagina" target="_blank" style="margin: 0 10px; color: #0e54eb;"><i
+          class="fab fa-facebook"></i></a>
+      <a href="https://instagram.com/tu-pagina" target="_blank" style="margin: 0 10px; color: #e1306c;"><i
+          class="fab fa-instagram"></i></a>
+      <a href="https://www.tiktok.com/@tu-cuenta" target="_blank" style="margin: 0 10px; color: #000000;"><i
+          class="fab fa-tiktok"></i></a>
+    </div>
+    <div style="font-size: 0.9rem; color: #ccc;">
+      &copy; 2025 Moda & Estilo. Todos los derechos reservados.
+    </div>
+  </footer>
+
+
+  <script>
+    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+
+    // ==== FUNCIONES DEL CARRITO ====
+    function actualizarCarrito() {
+      const div = document.getElementById('carrito');
+      div.innerHTML = '';
+
+      if (carrito.length === 0) {
+        div.innerHTML = '<p style="text-align:center; color: #888;">🛒 El carrito está vacío</p>';
+      }
+
+      carrito.forEach((item, index) => {
+        const tarjeta = document.createElement('div');
+        tarjeta.className = 'item-carrito-elegante';
+        tarjeta.innerHTML = `
+        <div class="carrito-info">
+          <h4>${item.nombre}</h4>
+          <p>Color: <strong>${item.color}</strong></p>
+          <p>Talla: <strong>${item.talla}</strong></p>
+          <p>Precio: <strong>$${item.precio.toLocaleString()}</strong></p>
+        </div>
+        <span class="icono-eliminar" onclick="eliminarProducto(${index})">❌</span>
+      `;
+        div.appendChild(tarjeta);
+      });
+
+      const total = carrito.reduce((acc, item) => acc + item.precio, 0);
+      document.getElementById('total-carrito').textContent = `Total: $${total.toLocaleString()}`;
+      localStorage.setItem('carrito', JSON.stringify(carrito));
+    }
+
+    function eliminarProducto(index) {
+      carrito.splice(index, 1);
+      actualizarCarrito();
+    }
+
+    function vaciarCarrito() {
+      carrito.length = 0;
+      actualizarCarrito();
+      alert("Carrito vaciado.");
+    }
+
+    function toggleCarrito() {
+      const contenedor = document.getElementById('bloqueCarrito');
+      contenedor.classList.toggle('oculto');
+      document.getElementById('formularioCliente').classList.add('oculto');
+      actualizarCarrito();
+    }
+
+    function mostrarFormulario() {
+      if (carrito.length === 0) {
+        alert("Tu carrito está vacío.");
+        return;
+      }
+      document.getElementById('formularioCliente').classList.remove('oculto');
+    }
+
+    function ocultarFormulario() {
+      document.getElementById('formularioCliente').classList.add('oculto');
+    }
+
+    function mostrarNotificacion(mensaje = "Producto agregado al carrito 🛒") {
+      const notif = document.getElementById("notificacion");
+      notif.textContent = mensaje;
+      notif.classList.remove("oculto");
+      notif.classList.add("mostrar");
+
+      setTimeout(() => {
+        notif.classList.remove("mostrar");
+        notif.classList.add("oculto");
+      }, 3000);
+    }
+
+    function confirmarEnvioWhatsApp() {
+      const nombre = document.getElementById('nombreCliente').value.trim();
+      const departamento = document.getElementById('departamentoCliente').value.trim();
+      const ciudad = document.getElementById('ciudadCliente').value.trim();
+      const direccion = document.getElementById('direccionCliente').value.trim();
+      const celular = document.getElementById('celularCliente').value.trim();
+      const metodo = document.getElementById('metodoPagoCliente').value;
+
+      if (!nombre || !departamento || !ciudad || !direccion || !celular || !metodo) {
+        alert('Por favor completa todos los campos del formulario.');
+        return;
+      }
+
+      if (carrito.length === 0) {
+        alert('Tu carrito está vacío.');
+        return;
+      }
+
+      const fecha = new Date();
+      const fechaFormateada = `${fecha.getDate().toString().padStart(2, '0')}/${(fecha.getMonth() + 1).toString().padStart(2, '0')}/${fecha.getFullYear()}`;
+
+      let mensaje = `📦 NUEVO PEDIDO\n\n`;
+      mensaje += `🗓️ Fecha del pedido: ${fechaFormateada}\n\n`;
+
+      carrito.forEach((item, i) => {
+        mensaje += `🥿 Producto ${i + 1}: ${item.nombre} - Color: ${item.color} - Talla: ${item.talla} - Precio: $${item.precio.toLocaleString()}\n`;
+      });
+
+      const total = carrito.reduce((acc, item) => acc + item.precio, 0);
+      mensaje += `\n💰 Total: $${total.toLocaleString()}\n\n`;
+      mensaje += `📍 Nombre: ${nombre}\n🏛️ Departamento: ${departamento}\n🏙️ Ciudad: ${ciudad}\n🏠 Dirección: ${direccion}\n📞 Celular: ${celular}\n💳 Método de pago: ${metodo}\n\n`;
+      mensaje += `✅ Gracias por tu compra, pronto nos comunicaremos contigo.`;
+
+      const numeroWhatsApp = '573185634316';
+      const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
+      window.open(url, '_blank');
+      vaciarCarrito();
+    }
+
+    function inicializarProducto(producto) {
+      const imagenes = JSON.parse(producto.getAttribute('data-imagenes') || '{}');
+      const mainImg = producto.querySelector('.main-img');
+      const miniContainer = producto.querySelector('.imagenes-mini');
+      const colorSelect = producto.querySelector('.color-select');
+      const tallaSelect = producto.querySelectorAll('select')[1];
+      const boton = producto.querySelector('button');
+      const nombre = producto.querySelector('h2').textContent;
+      const precioTexto = producto.querySelector('strong').textContent.replace(/[$.]/g, '');
+      const precio = parseInt(precioTexto);
+
+      Object.entries(imagenes).forEach(([color, url]) => {
+        const mini = document.createElement('img');
+        mini.src = url;
+        mini.title = color;
+        mini.onclick = () => {
+          mainImg.src = url;
+          colorSelect.value = color;
+        };
+        miniContainer.appendChild(mini);
+      });
+
+      colorSelect?.addEventListener('change', () => {
+        const color = colorSelect.value;
+        if (imagenes[color]) {
+          mainImg.src = imagenes[color];
+        }
+      });
+
+      boton.addEventListener('click', () => {
+        const color = colorSelect.value;
+        const talla = tallaSelect.value;
+        carrito.push({ nombre, color, talla, precio });
+        actualizarCarrito();
+        mostrarNotificacion();
+      });
+    }
+
+    // ==== PANEL ADMINISTRADOR ====
+    let keysPressed = new Set();
+    document.addEventListener("keydown", e => {
+      keysPressed.add(e.key);
+      if (keysPressed.has("Control") && keysPressed.has("Shift") && keysPressed.has("A")) {
+        document.getElementById("admin-panel").style.display = "block";
+      }
+    });
+    document.addEventListener("keyup", e => keysPressed.delete(e.key));
+
+    function cerrarAdminPanel() {
+      document.getElementById("admin-panel").style.display = "none";
+      document.getElementById("admin-login").style.display = "block";
+      document.getElementById("admin-contenido").style.display = "none";
+    }
+
+    function loginAdmin() {
+      const usuario = document.getElementById("admin-usuario").value;
+      const clave = document.getElementById("admin-clave").value;
+      if (usuario === "admin" && clave === "1234") {
+        document.getElementById("admin-login").style.display = "none";
+        document.getElementById("admin-contenido").style.display = "block";
+        cargarProductos();
+      } else {
+        alert("Usuario o clave incorrecta.");
+      }
+    }
+
+     // === ACTUALIZADO PANEL ADMINISTRADOR ===
+  function cargarProductos() {
+    const productos = document.querySelectorAll(".producto");
+    const selector = document.getElementById("selectorProducto");
+    selector.innerHTML = "";
+    productos.forEach((prod, i) => {
+      const nombre = prod.querySelector("h2").textContent;
+      const id = prod.getAttribute("data-id") || i;
+      selector.innerHTML += `<option value="${id}" data-index="${i}">${nombre}</option>`;
+    });
+  }
+
+  function eliminarProductoDesdePanel() {
+    const selector = document.getElementById("selectorProducto");
+    const id = selector.value;
+    const index = selector.selectedIndex;
+    const option = selector.options[index];
+    const indexHTML = option?.getAttribute("data-index");
+
+    if (!id || indexHTML === null) return alert("Selecciona un producto válido.");
+
+    if (confirm("¿Estás seguro de eliminar este producto desde Firebase?")) {
+      db.collection("productos").doc(id).delete()
+        .then(() => {
+          alert("✅ Producto eliminado correctamente");
+          const productos = document.querySelectorAll(".producto");
+          const prodHTML = productos[indexHTML];
+          prodHTML?.remove();
+          selector.remove(index);
+        })
+        .catch(error => {
+          console.error("Error al eliminar:", error);
+          alert("❌ Hubo un error al eliminar el producto");
+        });
+    }
+  }
+
+    function actualizarProducto() {
+      const index = document.getElementById("selectorProducto").value;
+      const url = document.getElementById("nuevaImagen").value;
+      const tallas = document.getElementById("nuevasTallas").value.split(",").map(t => t.trim());
+      const productos = document.querySelectorAll(".producto");
+      const prod = productos[index];
+
+      if (url) prod.querySelector(".main-img").src = url;
+
+      if (tallas.length > 0) {
+        const selectTalla = prod.querySelectorAll("select")[1];
+        selectTalla.innerHTML = "";
+        tallas.forEach(t => {
+          selectTalla.innerHTML += `<option>${t}</option>`;
+        });
+      }
+
+      alert("✅ Producto actualizado");
+      cerrarAdminPanel();
+    }
+
+    function agregarNuevoProducto() {
+      const nombre = document.getElementById("nuevoNombre").value.trim();
+      const precio = parseInt(document.getElementById("nuevoPrecio").value);
+      const precioOriginal = parseInt(document.getElementById("nuevoPrecioOriginal").value);
+      const imagen = document.getElementById("nuevoImagen").value.trim();
+      const color = document.getElementById("nuevoColor").value.trim();
+      const tallas = document.getElementById("nuevoTallas").value.split(",").map(t => t.trim());
+
+      if (!nombre || isNaN(precio) || isNaN(precioOriginal) || !imagen || !color || tallas.length === 0) {
+        alert("⚠️ Debes completar todos los campos correctamente.");
+        return;
+      }
+
+      const nuevoHTML = `
+      <div class="producto" data-imagenes='{}'>
+        <img class="main-img" src="${imagen}" alt="${nombre}">
+        <div class="imagenes-mini"></div>
+        <h2>${nombre}</h2>
+        <p>Precio: <s>$${precioOriginal.toLocaleString()}</s> <strong>$${precio.toLocaleString()}</strong></p>
+        <div class="opciones">
+          <select class="color-select"><option value="${color.toLowerCase()}">${color}</option></select>
+          <select>${tallas.map(t => `<option>${t}</option>`).join("")}</select>
+        </div>
+        <button>Agregar al carrito</button>
+      </div>
+    `;
+
+      const productoContainer = document.createElement("div");
+      productoContainer.innerHTML = nuevoHTML;
+      const nuevoProducto = productoContainer.querySelector(".producto");
+      document.querySelector("#contenedor-productos").appendChild(nuevoProducto);
+      inicializarProducto(nuevoProducto);
+
+      // Guardar en Firebase
+      db.collection("productos").add({ nombre, precio, precioOriginal, imagen, color, tallas })
+        .then(() => console.log("🟢 Producto guardado en Firebase"))
+        .catch(err => console.error("❌ Error guardando producto:", err));
+
+      alert("✅ Producto agregado exitosamente");
+      cerrarAdminPanel();
+    }
+
+    async function cargarProductosDesdeFirebase() {
+      const snapshot = await db.collection("productos").get();
+      snapshot.forEach(doc => {
+        const p = doc.data();
+        const id = doc.id;
+
+        const productoHTML = `
+        <div class="producto" data-id="${id}" data-imagenes='{}'>
+          <img class="main-img" src="${p.imagen}" alt="${p.nombre}">
+          <div class="imagenes-mini"></div>
+          <h2>${p.nombre}</h2>
+          <p>Precio: <s>$${parseInt(p.precioOriginal).toLocaleString()}</s> <strong>$${parseInt(p.precio).toLocaleString()}</strong></p>
+          <div class="opciones">
+            <select class="color-select"><option value="${p.color.toLowerCase()}">${p.color}</option></select>
+            <select>${p.tallas.map(t => `<option>${t}</option>`).join("")}</select>
+          </div>
+          <button>Agregar al carrito</button>
+          <button onclick="eliminarProductoDeFirebase('${id}')">🗑️ Eliminar</button>
+        </div>
+      `;
+
+        const cont = document.createElement("div");
+        cont.innerHTML = productoHTML;
+        const nodo = cont.querySelector(".producto");
+        document.querySelector("#contenedor-productos").appendChild(nodo);
+        inicializarProducto(nodo);
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      actualizarCarrito();
+      cargarProductosDesdeFirebase();
+    });
+
+    function guardarProductoEnFirebase(data) {
+      return db.collection("productos").add(data);
+    }
+
+    function actualizarProductoEnFirebase(id, data) {
+      return db.collection("productos").doc(id).update(data);
+    }
+
+    function eliminarProductoDeFirebase(id) {
+      if (confirm("¿Estás seguro de eliminar este producto?")) {
+        db.collection("productos").doc(id).delete()
+          .then(() => {
+            alert("✅ Producto eliminado de Firebase");
+            location.reload();
+          })
+          .catch(err => console.error("❌ Error eliminando producto:", err));
+      }
+    }
+  </script>
+
+
+</body>
+
+</html>
